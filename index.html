@@ -1,0 +1,457 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asesmen Ekonomi SMA</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,sans-serif;
+  background:#f1f5f9;color:#172033;
+}
+header{
+  background:linear-gradient(135deg,#123c69,#087e8b);
+  color:white;text-align:center;padding:30px 15px;
+}
+header h1{margin:0 0 10px;font-size:27px}
+header p{margin:5px}
+.container{max-width:850px;margin:25px auto;padding:0 15px}
+.card{
+  background:white;padding:24px;border-radius:15px;
+  box-shadow:0 4px 18px #00000010;margin-bottom:18px;
+}
+input{
+  width:100%;padding:13px;border:1px solid #cbd5e1;
+  border-radius:8px;margin:8px 0 17px;font-size:16px;
+}
+button{
+  border:0;border-radius:9px;padding:12px 20px;
+  cursor:pointer;font-size:15px;font-weight:bold;
+}
+.primary{background:#087e8b;color:white}
+.secondary{background:#e2e8f0;color:#172033}
+.option{
+  display:block;width:100%;text-align:left;
+  margin:12px 0;background:#f1f5f9;color:#172033;
+  border:2px solid transparent;
+}
+.option.selected{border-color:#087e8b;background:#e0f2fe}
+.option:disabled{cursor:default}
+.progress{
+  height:10px;background:#e2e8f0;border-radius:20px;
+  overflow:hidden;margin:12px 0;
+}
+.bar{height:100%;background:#0d9488;width:0;transition:.3s}
+.small{color:#64748b;font-size:13px}
+.hidden{display:none!important}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
+.actions button{flex:1}
+.result{text-align:center}
+.score{font-size:55px;font-weight:bold;color:#087e8b}
+.review{border-bottom:1px solid #e2e8f0;padding:14px 0}
+.correct{color:#15803d;font-weight:bold}
+.wrong{color:#dc2626;font-weight:bold}
+footer{text-align:center;color:#64748b;padding:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ASESMEN EKONOMI SMA</h1>
+  <p>Evaluasi Pemahaman Materi Ekonomi</p>
+  <p>30 Soal Benar atau Salah</p>
+</header>
+
+<div class="container">
+
+<section id="identity" class="card">
+  <h2>Identitas Peserta Didik</h2>
+  <label>Nama lengkap</label>
+  <input id="student" placeholder="Masukkan nama lengkap">
+  <label>Kelas</label>
+  <input id="className" placeholder="Contoh: X-1 atau XI-2">
+  <p class="small">Pastikan identitas sudah benar sebelum memulai asesmen.</p>
+  <button class="primary" onclick="startQuiz()">MULAI ASESMEN</button>
+</section>
+
+<section id="quiz" class="card hidden">
+  <div style="display:flex;justify-content:space-between;gap:10px">
+    <strong id="number">Soal 1 dari 30</strong>
+    <span class="small" id="progressText">0% selesai</span>
+  </div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <p class="small">Pilih satu jawaban yang paling tepat.</p>
+  <h3 id="question"></h3>
+  <div id="options"></div>
+  <div class="actions">
+    <button class="secondary" onclick="previousQuestion()">KEMBALI</button>
+    <button class="primary" id="next" onclick="nextQuestion()">BERIKUTNYA</button>
+  </div>
+</section>
+
+<section id="result" class="card hidden">
+  <div class="result">
+    <h2>ASESMEN SELESAI!</h2>
+    <p>Hasil evaluasi pemahaman ekonomi Anda:</p>
+    <div class="score" id="score">0</div>
+    <p id="summary"></p>
+    <p id="status"></p>
+  </div>
+  <hr>
+  <h3>Pembahasan dan Evaluasi Jawaban</h3>
+  <div id="review"></div>
+  <button class="primary" id="sendButton" onclick="sendResult()">
+    KIRIM HASIL KE EMAIL GURU
+  </button>
+  <p id="emailStatus" class="small"></p>
+</section>
+
+</div>
+<footer>Asesmen Digital Ekonomi SMA</footer>
+
+<script>
+const questions = [
+{
+ q:"Ilmu ekonomi mempelajari cara manusia memenuhi kebutuhan yang tidak terbatas dengan sumber daya yang terbatas.",
+ a:true,
+ e:"Benar. Ilmu ekonomi mempelajari pilihan manusia dalam menggunakan sumber daya yang terbatas untuk memenuhi kebutuhan."
+},
+{
+ q:"Kelangkaan terjadi karena semua kebutuhan manusia dapat dipenuhi oleh sumber daya yang tersedia.",
+ a:false,
+ e:"Salah. Kelangkaan terjadi karena kebutuhan manusia tidak terbatas, sedangkan sumber daya untuk memenuhinya terbatas."
+},
+{
+ q:"Biaya peluang adalah nilai dari alternatif terbaik yang dikorbankan ketika seseorang mengambil keputusan.",
+ a:true,
+ e:"Benar. Biaya peluang menunjukkan kesempatan terbaik yang dilepaskan akibat memilih alternatif lain."
+},
+{
+ q:"Motif ekonomi hanya berkaitan dengan keinginan memperoleh keuntungan materi.",
+ a:false,
+ e:"Salah. Motif ekonomi juga meliputi motif sosial, memperoleh penghargaan, dan memenuhi kebutuhan."
+},
+{
+ q:"Prinsip ekonomi mengajarkan seseorang memperoleh hasil maksimal dengan pengorbanan tertentu.",
+ a:true,
+ e:"Benar. Prinsip ekonomi menekankan efisiensi dalam menggunakan sumber daya."
+},
+{
+ q:"Rumah tangga konsumen berperan menyediakan faktor-faktor produksi kepada perusahaan.",
+ a:true,
+ e:"Benar. Rumah tangga konsumen menyediakan tenaga kerja, tanah, modal, dan keahlian."
+},
+{
+ q:"Perusahaan merupakan pihak yang hanya mengonsumsi barang dan tidak menghasilkan barang atau jasa.",
+ a:false,
+ e:"Salah. Perusahaan atau produsen mengolah faktor produksi untuk menghasilkan barang dan jasa."
+},
+{
+ q:"Dalam kegiatan ekonomi, pemerintah dapat berperan sebagai produsen sekaligus konsumen.",
+ a:true,
+ e:"Benar. Pemerintah menghasilkan layanan publik dan membeli barang atau jasa untuk menjalankan tugasnya."
+},
+{
+ q:"Permintaan adalah jumlah barang yang ingin dan mampu dibeli konsumen pada berbagai tingkat harga dalam periode tertentu.",
+ a:true,
+ e:"Benar. Permintaan memperhatikan keinginan sekaligus kemampuan membeli."
+},
+{
+ q:"Jika harga suatu barang naik, jumlah barang yang diminta biasanya meningkat, dengan asumsi faktor lain tetap.",
+ a:false,
+ e:"Salah. Berdasarkan hukum permintaan, harga naik biasanya menyebabkan jumlah yang diminta turun, ceteris paribus."
+},
+{
+ q:"Hukum penawaran menyatakan bahwa kenaikan harga biasanya meningkatkan jumlah barang yang ditawarkan.",
+ a:true,
+ e:"Benar. Dengan faktor lain tetap, harga yang lebih tinggi mendorong produsen menawarkan lebih banyak barang."
+},
+{
+ q:"Pendapatan konsumen merupakan salah satu faktor yang dapat memengaruhi permintaan.",
+ a:true,
+ e:"Benar. Perubahan pendapatan dapat mengubah kemampuan dan pola konsumsi masyarakat."
+},
+{
+ q:"Harga barang itu sendiri merupakan faktor yang menyebabkan kurva permintaan bergeser.",
+ a:false,
+ e:"Salah. Perubahan harga barang itu sendiri menyebabkan pergerakan sepanjang kurva. Faktor lain dapat menggeser kurva."
+},
+{
+ q:"Harga keseimbangan terbentuk ketika jumlah yang diminta sama dengan jumlah yang ditawarkan.",
+ a:true,
+ e:"Benar. Pada titik keseimbangan, pasar tidak mengalami kelebihan permintaan maupun kelebihan penawaran."
+},
+{
+ q:"Inflasi adalah kenaikan harga satu barang saja dalam suatu waktu.",
+ a:false,
+ e:"Salah. Inflasi merupakan kenaikan harga barang dan jasa secara umum dan berlangsung secara berkelanjutan."
+},
+{
+ q:"Pendapatan nasional dapat digunakan untuk menggambarkan aktivitas ekonomi suatu negara dalam periode tertentu.",
+ a:true,
+ e:"Benar. Pendapatan nasional merupakan salah satu indikator untuk melihat kondisi perekonomian."
+},
+{
+ q:"Produk Domestik Bruto menghitung nilai barang dan jasa akhir yang diproduksi di wilayah suatu negara selama periode tertentu.",
+ a:true,
+ e:"Benar. PDB berdasarkan lokasi kegiatan produksi, tanpa memandang kewarganegaraan pemilik faktor produksi."
+},
+{
+ q:"Pertumbuhan ekonomi selalu menjamin bahwa seluruh masyarakat mengalami peningkatan kesejahteraan secara merata.",
+ a:false,
+ e:"Salah. Pertumbuhan ekonomi menunjukkan peningkatan output, tetapi belum tentu diikuti pemerataan kesejahteraan."
+},
+{
+ q:"Pembangunan ekonomi memiliki cakupan yang lebih luas daripada pertumbuhan ekonomi.",
+ a:true,
+ e:"Benar. Pembangunan ekonomi mencakup perubahan struktur ekonomi, pemerataan, dan peningkatan kualitas hidup."
+},
+{
+ q:"Indeks Pembangunan Manusia mengukur pembangunan manusia melalui dimensi kesehatan, pendidikan, dan standar hidup layak.",
+ a:true,
+ e:"Benar. Ketiga dimensi tersebut digunakan dalam pengukuran IPM."
+},
+{
+ q:"Angkatan kerja hanya terdiri atas penduduk yang sedang bekerja.",
+ a:false,
+ e:"Salah. Angkatan kerja terdiri atas penduduk yang bekerja dan pengangguran yang mencari pekerjaan atau mempersiapkan usaha sesuai definisi statistik ketenagakerjaan."
+},
+{
+ q:"Pengangguran terbuka merupakan kondisi ketika seseorang tidak bekerja dan sedang mencari pekerjaan atau mempersiapkan usaha.",
+ a:true,
+ e:"Benar. Pengangguran terbuka mencakup mereka yang belum bekerja dan berupaya memperoleh pekerjaan atau memulai usaha."
+},
+{
+ q:"Pengangguran musiman dapat terjadi karena perubahan musim yang memengaruhi kegiatan produksi.",
+ a:true,
+ e:"Benar. Contohnya pekerja pertanian yang tidak bekerja pada periode tertentu setelah masa panen."
+},
+{
+ q:"Pengangguran struktural dapat terjadi karena keterampilan tenaga kerja tidak sesuai dengan kebutuhan dunia kerja.",
+ a:true,
+ e:"Benar. Perubahan struktur ekonomi dan teknologi dapat membuat keterampilan tertentu tidak lagi sesuai."
+},
+{
+ q:"Upah merupakan balas jasa yang diterima tenaga kerja atas pekerjaan yang dilakukannya.",
+ a:true,
+ e:"Benar. Upah merupakan imbalan atas jasa tenaga kerja yang diberikan kepada pemberi kerja."
+},
+{
+ q:"Sistem upah berdasarkan waktu ditentukan berdasarkan jumlah barang yang berhasil diproduksi pekerja.",
+ a:false,
+ e:"Salah. Upah berdasarkan waktu ditentukan menurut lamanya bekerja, seperti per jam, per hari, atau per bulan."
+},
+{
+ q:"Sistem upah berdasarkan hasil memberikan imbalan berdasarkan jumlah hasil pekerjaan yang dihasilkan.",
+ a:true,
+ e:"Benar. Besarnya upah bergantung pada jumlah atau hasil pekerjaan yang diselesaikan."
+},
+{
+ q:"Peningkatan kualitas pendidikan dan keterampilan dapat membantu mengurangi pengangguran.",
+ a:true,
+ e:"Benar. Pendidikan dan pelatihan meningkatkan kompetensi serta daya saing tenaga kerja."
+},
+{
+ q:"Pajak merupakan salah satu sumber penerimaan pemerintah yang dapat digunakan untuk membiayai pembangunan.",
+ a:true,
+ e:"Benar. Penerimaan pajak digunakan untuk membiayai berbagai kebutuhan dan program pemerintah."
+},
+{
+ q:"Kegiatan ekspor berarti membeli barang atau jasa dari negara lain.",
+ a:false,
+ e:"Salah. Ekspor adalah kegiatan menjual barang atau jasa ke luar negeri, sedangkan impor adalah membeli dari luar negeri."
+}
+];
+
+let current = 0;
+let answers = Array(questions.length).fill(null);
+let studentName = "";
+let studentClass = "";
+let finalScore = 0;
+
+function startQuiz(){
+  studentName=document.getElementById("student").value.trim();
+  studentClass=document.getElementById("className").value.trim();
+
+  if(!studentName || !studentClass){
+    alert("Silakan isi nama dan kelas terlebih dahulu.");
+    return;
+  }
+
+  document.getElementById("identity").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=questions[current];
+  document.getElementById("number").textContent=
+    `Soal ${current+1} dari ${questions.length}`;
+
+  const done=answers.filter(x=>x!==null).length;
+  document.getElementById("progressText").textContent=
+    `${Math.round(done/questions.length*100)}% selesai`;
+  document.getElementById("bar").style.width=
+    `${done/questions.length*100}%`;
+
+  document.getElementById("question").textContent=q.q;
+
+  const options=document.getElementById("options");
+  options.innerHTML="";
+
+  [true,false].forEach(value=>{
+    const button=document.createElement("button");
+    button.className="option"+
+      (answers[current]===value?" selected":"");
+    button.textContent=value?"BENAR":"SALAH";
+    button.onclick=()=>{
+      answers[current]=value;
+      renderQuestion();
+    };
+    options.appendChild(button);
+  });
+
+  document.getElementById("next").textContent=
+    current===questions.length-1?"SELESAI":"BERIKUTNYA";
+}
+
+function previousQuestion(){
+  if(current>0){
+    current--;
+    renderQuestion();
+  }
+}
+
+function nextQuestion(){
+  if(answers[current]===null){
+    alert("Silakan pilih jawaban terlebih dahulu.");
+    return;
+  }
+
+  if(current<questions.length-1){
+    current++;
+    renderQuestion();
+  }else{
+    finishQuiz();
+  }
+}
+
+function finishQuiz(){
+  const unanswered=answers.filter(x=>x===null).length;
+  if(unanswered>0){
+    alert(`Masih ada ${unanswered} soal yang belum dijawab.`);
+    return;
+  }
+
+  const correct=answers.filter(
+    (answer,index)=>answer===questions[index].a
+  ).length;
+
+  finalScore=Math.round(correct/questions.length*100);
+
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  document.getElementById("score").textContent=finalScore;
+  document.getElementById("summary").textContent=
+    `Jawaban benar: ${correct} | Jawaban salah: ${30-correct}`;
+
+  document.getElementById("status").textContent=
+    finalScore>=90?"Predikat: Sangat Baik":
+    finalScore>=80?"Predikat: Baik":
+    finalScore>=70?"Predikat: Cukup":
+    "Predikat: Perlu Belajar Kembali";
+
+  const review=document.getElementById("review");
+  review.innerHTML="";
+
+  questions.forEach((q,i)=>{
+    const right=answers[i]===q.a;
+    const div=document.createElement("div");
+    div.className="review";
+
+    const title=document.createElement("strong");
+    title.textContent=`${i+1}. ${q.q}`;
+
+    const answer=document.createElement("p");
+    answer.className=right?"correct":"wrong";
+    answer.textContent=
+      `Jawaban Anda: ${answers[i]?"Benar":"Salah"} | `+
+      `Kunci: ${q.a?"Benar":"Salah"} — `+
+      (right?"Tepat":"Belum tepat");
+
+    const explanation=document.createElement("p");
+    explanation.textContent="Pembahasan: "+q.e;
+
+    div.append(title,answer,explanation);
+    review.appendChild(div);
+  });
+
+  window.scrollTo(0,0);
+}
+
+function sendResult(){
+  // Ganti dengan URL Web App Google Apps Script.
+  const SCRIPT_URL="TEMPEL_URL_WEB_APP_APPS_SCRIPT_DI_SINI";
+
+  if(!SCRIPT_URL.startsWith("https://script.google.com/")){
+    alert("URL Google Apps Script belum dipasang.");
+    return;
+  }
+
+  const payload={
+    nama:studentName,
+    kelas:studentClass,
+    nilai:finalScore,
+    benar:answers.filter((a,i)=>a===questions[i].a).length,
+    salah:answers.filter((a,i)=>a!==questions[i].a).length,
+    waktu:new Date().toLocaleString("id-ID"),
+    jawaban:questions.map((q,i)=>({
+      nomor:i+1,
+      soal:q.q,
+      jawaban:answers[i]?"Benar":"Salah",
+      kunci:q.a?"Benar":"Salah",
+      pembahasan:q.e
+    }))
+  };
+
+  const button=document.getElementById("sendButton");
+  button.disabled=true;
+  button.textContent="MENGIRIM...";
+
+  try{
+    const iframe=document.createElement("iframe");
+    iframe.name="emailTarget";
+    iframe.style.display="none";
+    document.body.appendChild(iframe);
+
+    const form=document.createElement("form");
+    form.method="POST";
+    form.action=SCRIPT_URL;
+    form.target="emailTarget";
+    form.style.display="none";
+
+    const input=document.createElement("input");
+    input.name="payload";
+    input.value=JSON.stringify(payload);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+    form.submit();
+
+    document.getElementById("emailStatus").textContent=
+      "Permintaan pengiriman telah dikirim. Periksa email guru untuk memastikan hasil diterima.";
+
+    button.textContent="PERMINTAAN TERKIRIM";
+  }catch(error){
+    button.disabled=false;
+    button.textContent="COBA KIRIM LAGI";
+    document.getElementById("emailStatus").textContent=
+      "Pengiriman gagal. Silakan coba kembali.";
+  }
+}
+</script>
+</body>
+</html>
